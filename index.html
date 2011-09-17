@@ -1,0 +1,247 @@
+<html>
+
+	<head>
+
+		<title>Coût de revient des recettes</title>
+
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+		<script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
+		<script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
+		<script type="text/javascript" src="js/jquery.autocomplete.min.js"></script>
+		<script type="text/javascript" src="js/jquery.jeditable.js"></script>
+		<script type="text/javascript" src="js/jquery.dataTables.js"></script>
+
+		<script type="text/javascript">
+			var jsdb = {
+				'ingredients': [
+					['Beurre', 250, 150],
+					['Farine', 1000, 50],
+					['Levure', 250, 50],
+					['Sel', 150, 25],
+					['Sucre', 500, 50]
+				],
+				'recettes': [
+				]
+			};
+
+			function dynamize(table) {
+				$('td', table.fnGetNodes()).editable( 'edit.php', {
+					"callback": function( sValue, y ) {
+						var aPos = ingredientsTable.fnGetPosition( this );
+						table.fnUpdate( sValue, aPos[0], aPos[1] );
+					},
+					"submitdata": function ( value, settings ) {
+						return {
+							"row_id": this.parentNode.getAttribute('id'),
+							"column": table.fnGetPosition( this )[2]
+						};
+					},
+					"height": "2em"
+				});
+			}
+
+			$(function(){
+				// TODO generate from the db, update when adding new entries
+				var ingredients = [
+					'Beurre',
+					'Farine',
+					'Levure',
+					'Sel',
+					'Sélection',
+					'Sucre'
+				];
+
+				// TODO generate from the db, update when adding new entries
+				var recettes = [
+					'Pains au chocolat',
+					'Macarons'
+				];
+
+				$('#3_ingredient').autocomplete(ingredients, {
+					mustMatch: true
+				});
+
+				$('#tabs').tabs();
+
+				var ingredientsTable = $('#ingredients').dataTable();
+				$(ingredients).each(function(index, value){
+					ingredientsTable.fnAddData([value, '1', '42']);
+				});
+				// TODO update the database and the table
+				dynamize(ingredientsTable);
+
+				var recettesTable = $('#recettes').dataTable();
+				// TODO update the database and the table
+				$('td', recettesTable.fnGetNodes()).editable( '../examples_support/editable_ajax.php', {
+					"callback": function( sValue, y ) {
+						var aPos = recettesTable.fnGetPosition( this );
+						recettesTable.fnUpdate( sValue, aPos[0], aPos[1] );
+					},
+					"submitdata": function ( value, settings ) {
+						return {
+							"row_id": this.parentNode.getAttribute('id'),
+							"column": recettesTable.fnGetPosition( this )[2]
+						};
+					},
+					"height": "2em"
+				} );
+
+				var recetteTable = $('#recette').dataTable();
+
+				$('#1_form').submit(function() {
+					ingredientsTable.fnAddData([$('#1_ingredient').val(), $('#1_quantite').val(), $('#1_prix').val()]);
+					dynamize(ingredientsTable);
+					return false;
+				});
+
+				$('#2_form').submit(function() {
+					recettesTable.fnAddData([$('#2_recette').val(), 0]);
+					dynamize(recettesTable);
+					return false;
+				});
+
+				$('#3_form').submit(function() {
+					recetteTable.fnAddData([$('#3_ingredient').val(), $('#3_quantite').val(), 0, 'X']);
+					dynamize(recetteTable);
+					return false;
+				});
+			});
+		</script>
+
+		<link type="text/css" href="css/pepper-grinder/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
+		<link type="text/css" href="css/jquery.autocomplete.css" rel="stylesheet" />
+		<link type="text/css" href="css/demo_page.css" rel="stylesheet" />
+		<link type="text/css" href="css/demo_table.css" rel="stylesheet" />
+
+	</head>
+
+	<body>
+
+		<h1>Coût de revient des recettes</h1>
+
+		<div id="tabs">
+			<ul id="toptabs">
+				<li><a href="#tabs-1">Ingrédients</a></li>
+				<!-- TODO reload from the db (in case the ingredients / prices have changed) -->
+				<li><a href="#tabs-2">Recettes</a></li>
+				<!-- TODO last edited recette, reload from the db (in case the ingredients / prices have changed) -->
+				<li><a href="#tabs-3">Pains au chocolat</a></li>
+			</ul>
+
+			<div id="tabs-1" class="ui-widget">
+				<!-- TODO generate from the db -->
+				<table cellpadding="0" cellspacing="0" border="0" class="display" id="ingredients">
+					<col/>
+					<col align="right"/>
+					<col align="right"/>
+					<thead>
+						<tr>
+							<th>Ingrédient</th>
+							<th>Quantité</th>
+							<th>Prix</th>
+						</tr>
+					</thead>
+					<tfoot>
+						<tr>
+							<th>Ingrédient</th>
+							<th>Quantité</th>
+							<th>Prix</th>
+						</tr>
+					</tfoot>
+					<tbody>
+					</tbody>
+				</table>
+
+				<br />
+				<br />
+
+				<form id="1_form">
+					<label for="1_ingredient">Nom</label>
+					<input id="1_ingredient" type="text"/>
+					<label for="1_quantite">Quantité</label>
+					<input id="1_quantite" type="text"/>
+					<label for="1_prix">Prix</label>
+					<input id="1_prix" type="text"/>
+					<input id="1_ajouter" type="submit" value="Ajouter"/>
+				</form>
+			</div>
+
+			<div id="tabs-2" class="ui-widget">
+				<!-- TODO generate from the db -->
+				<table cellpadding="0" cellspacing="0" border="0" class="display" id="recettes">
+					<col/>
+					<col align="right"/>
+					<thead>
+						<tr>
+							<!-- TODO link, updates the third tab -->
+							<th>Recette</th>
+							<th>Prix</th>
+						</tr>
+					</thead>
+					<tfoot>
+						<tr>
+							<th>Recette</th>
+							<th>Prix</th>
+						</tr>
+					</tfoot>
+					<tbody>
+					</tbody>
+				</table>
+
+				<br />
+				<br />
+
+				<form id="2_form">
+					<label for="2_recette">Nom</label>
+					<input id="2_recette" type="text"/>
+					<input id="2_ajouter" type="submit" value="Ajouter"/>
+				</form>
+			</div>
+
+			<div id="tabs-3" class="ui-widget">
+				<!-- TODO generate from the db -->
+				<table cellpadding="0" cellspacing="0" border="0" class="display" id="recette">
+					<col/>
+					<col align="right"/>
+					<!-- TODO last column is not editable, but updated according to the rest -->
+					<col align="right"/>
+					<col align="center"/>
+					<thead>
+						<tr>
+							<th>Ingrédient</th>
+							<th>Quantité</th>
+							<th>Prix</th>
+							<th>Supprimer</th>
+						</tr>
+					</thead>
+					<tfoot>
+						<tr>
+							<th>Ingrédient</th>
+							<th>Quantité</th>
+							<th>Prix</th>
+							<th>Supprimer</th>
+						</tr>
+					</tfoot>
+					<tbody>
+					</tbody>
+				</table>
+
+				<br />
+				<br />
+
+				<form id="3_form">
+					<label for="3_ingredient">Ingrédient</label>
+					<input id="3_ingredient" type="text"/>
+					<label for="3_quantite">Quantité</label>
+					<input id="3_quantite" type="text"/>
+					<input id="3_ajouter" type="submit" value="Ajouter"/>
+				</form>
+			</div>
+		</div>
+
+		<a href="http://github.com/Arkanosis/recettes"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://a248.e.akamai.net/assets.github.com/img/71eeaab9d563c2b3c590319b398dd35683265e85/687474703a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677261795f3664366436642e706e67" alt="Fork me on GitHub"/></a>
+
+	 </body>
+
+</html>
