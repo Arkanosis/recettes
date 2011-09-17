@@ -13,97 +13,105 @@
 		<script type="text/javascript" src="js/jquery.dataTables.js"></script>
 
 		<script type="text/javascript">
+		  	// TODO make the right columns editable:
+			// tab1: ingrédient, quantité, prix
+			// tab2: recette
+			// tab3: quantité
+			// ⇒ the others must *not* be editable
+
 			var jsdb = {
-				'ingredients': [
-					['Beurre', 250, 150],
-					['Farine', 1000, 50],
-					['Levure', 250, 50],
-					['Sel', 150, 25],
-					['Sucre', 500, 50]
-				],
-				'recettes': [
-				]
+				'ingredients': {
+					'Beurre': [250, 150],
+					'Farine': [1000, 50],
+					'Levure': [250, 50],
+					'Sel': [150, 25],
+					'Sucre': [500, 50]
+				},
+				'recettes': {
+					'Pains au chocolat': [
+						['Beurre', 25],
+						['Farine', 75],
+					],
+					'Macarons': [
+						['Beurre', 75],
+					]
+				}
 			};
 
-			function dynamize(table) {
-				$('td', table.fnGetNodes()).editable( 'edit.php', {
-					"callback": function( sValue, y ) {
-						var aPos = ingredientsTable.fnGetPosition( this );
-						table.fnUpdate( sValue, aPos[0], aPos[1] );
+			function keys(dictionary) {
+				var result = [];
+				$.each(dictionary, function(key, value) {
+					result.push(key);
+				});
+				return result;
+			}
+
+			function dynamize(table, backend) {
+				$('td', table.fnGetNodes()).editable(backend, {
+					'callback': function(sValue, y) {
+						var aPos = ingredientsTable.fnGetPosition(this);
+						table.fnUpdate(sValue, aPos[0], aPos[1]);
 					},
-					"submitdata": function ( value, settings ) {
+					'submitdata': function (value, settings) {
+console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.fnGetPosition(this)[2] + ': ' + value + ' (' + settings + ')');
 						return {
-							"row_id": this.parentNode.getAttribute('id'),
-							"column": table.fnGetPosition( this )[2]
+							'row_id': this.parentNode.getAttribute('id'),
+							'column': table.fnGetPosition(this)[2]
 						};
 					},
-					"height": "2em"
+					'height': '2em'
 				});
 			}
 
-			$(function(){
-				// TODO generate from the db, update when adding new entries
-				var ingredients = [
-					'Beurre',
-					'Farine',
-					'Levure',
-					'Sel',
-					'Sélection',
-					'Sucre'
-				];
-
-				// TODO generate from the db, update when adding new entries
-				var recettes = [
-					'Pains au chocolat',
-					'Macarons'
-				];
-
-				$('#3_ingredient').autocomplete(ingredients, {
-					mustMatch: true
+			function price(ingredients) {
+				var result = 0;
+				$.each(ingredients, function(index, ingredientAndQuantity) {
+					var ingredientInfo = jsdb.ingredients[ingredientAndQuantity[0]];
+					result += ingredientInfo[1] * ingredientAndQuantity[1] / ingredientInfo[0];
 				});
+				return result;
+			}
 
+			function recipe(name) {
+				$('#recipe_tab').text(name);
+				// FIXME fill the third tab with the recipe, compute the price
+			}
+
+			$(function() {
 				$('#tabs').tabs();
 
 				var ingredientsTable = $('#ingredients').dataTable();
-				$(ingredients).each(function(index, value){
-					ingredientsTable.fnAddData([value, '1', '42']);
+				$.each(jsdb.ingredients, function(name, properties) {
+					ingredientsTable.fnAddData([name, properties[0], properties[1]]);
 				});
-				// TODO update the database and the table
-				dynamize(ingredientsTable);
+				dynamize(ingredientsTable, 'edit_ingredient.php');
 
 				var recettesTable = $('#recettes').dataTable();
-				// TODO update the database and the table
-				$('td', recettesTable.fnGetNodes()).editable( '../examples_support/editable_ajax.php', {
-					"callback": function( sValue, y ) {
-						var aPos = recettesTable.fnGetPosition( this );
-						recettesTable.fnUpdate( sValue, aPos[0], aPos[1] );
-					},
-					"submitdata": function ( value, settings ) {
-						return {
-							"row_id": this.parentNode.getAttribute('id'),
-							"column": recettesTable.fnGetPosition( this )[2]
-						};
-					},
-					"height": "2em"
-				} );
+				$.each(jsdb.recettes, function(name, ingredients) {
+					recettesTable.fnAddData([name, price(ingredients), '<a href="javascript:recipe(\'' + name + '\');">ingrédients</a>']);
+				});
+				dynamize(recettesTable, 'edit_recette.php');
 
 				var recetteTable = $('#recette').dataTable();
 
+				$('#3_ingredient').autocomplete(keys(jsdb.ingredients), {
+					mustMatch: true
+				});
+
 				$('#1_form').submit(function() {
 					ingredientsTable.fnAddData([$('#1_ingredient').val(), $('#1_quantite').val(), $('#1_prix').val()]);
-					dynamize(ingredientsTable);
+					dynamize(ingredientsTable, 'edit_ingredient.php');
 					return false;
 				});
 
 				$('#2_form').submit(function() {
-					recettesTable.fnAddData([$('#2_recette').val(), 0]);
-					dynamize(recettesTable);
+					recettesTable.fnAddData([$('#2_recette').val(), 0, '<b>FIXME</b>']);
+					dynamize(recettesTable, 'edit_recette.php');
 					return false;
 				});
 
 				$('#3_form').submit(function() {
-					recetteTable.fnAddData([$('#3_ingredient').val(), $('#3_quantite').val(), 0, 'X']);
-					dynamize(recetteTable);
+					recetteTable.fnAddData([$('#3_ingredient').val(), $('#3_quantite').val(), 0, 'supprimer']);
 					return false;
 				});
 			});
@@ -126,7 +134,7 @@
 				<!-- TODO reload from the db (in case the ingredients / prices have changed) -->
 				<li><a href="#tabs-2">Recettes</a></li>
 				<!-- TODO last edited recette, reload from the db (in case the ingredients / prices have changed) -->
-				<li><a href="#tabs-3">Pains au chocolat</a></li>
+				<li><a href="#tabs-3" id="recipe_tab">Ingrédients de la recette</a></li>
 			</ul>
 
 			<div id="tabs-1" class="ui-widget">
@@ -177,12 +185,14 @@
 							<!-- TODO link, updates the third tab -->
 							<th>Recette</th>
 							<th>Prix</th>
+							<th>Ingrédients</th>
 						</tr>
 					</thead>
 					<tfoot>
 						<tr>
 							<th>Recette</th>
 							<th>Prix</th>
+							<th>Ingrédients</th>
 						</tr>
 					</tfoot>
 					<tbody>
@@ -228,6 +238,7 @@
 				</table>
 
 				<br />
+				<p>Coût de revient de la recette « <span id="recipe_name"></span> » : <span id="recipe_price"></span></p>
 				<br />
 
 				<form id="3_form">
