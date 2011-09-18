@@ -47,6 +47,8 @@
 			}
 
 			function dynamize(table, backend) {
+				return; // FIXME, re-activate when able to choose what is *not* editable
+
 				$('td', table.fnGetNodes()).editable(backend, {
 					'callback': function(sValue, y) {
 						var aPos = ingredientsTable.fnGetPosition(this);
@@ -63,18 +65,35 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 				});
 			}
 
-			function price(ingredients) {
+			function ingredientPrice(ingredient, quantity) {
+				var ingredientInfo = jsdb.ingredients[ingredient];
+				return ingredientInfo[1] * quantity / ingredientInfo[0];
+			}
+
+			function recipePrice(ingredients) {
 				var result = 0;
 				$.each(ingredients, function(index, ingredientAndQuantity) {
-					var ingredientInfo = jsdb.ingredients[ingredientAndQuantity[0]];
-					result += ingredientInfo[1] * ingredientAndQuantity[1] / ingredientInfo[0];
+					result += ingredientPrice(ingredientAndQuantity[0], ingredientAndQuantity[1]);
 				});
 				return result;
 			}
 
 			function recipe(name) {
-				$('#recipe_tab').text(name);
+				$('#recipe_tab').text(name).show().click();
+				$('#recipe_name').text(name);
+				$('#recipe_price').text(recipePrice(jsdb.recettes[name]));
+
 				// FIXME fill the third tab with the recipe, compute the price
+			}
+
+			function updateCompletions() {
+				$('#3_ingredient').autocomplete(keys(jsdb.ingredients), {
+					mustMatch: true
+				});
+			}
+
+			function linkToIngredients(recipe) {
+				return '<a href="javascript:recipe(\'' + recipe + '\');">ingrédients</a>';
 			}
 
 			$(function() {
@@ -88,32 +107,33 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 
 				var recettesTable = $('#recettes').dataTable();
 				$.each(jsdb.recettes, function(name, ingredients) {
-					recettesTable.fnAddData([name, price(ingredients), '<a href="javascript:recipe(\'' + name + '\');">ingrédients</a>']);
+					recettesTable.fnAddData([name, recipePrice(ingredients), linkToIngredients(name)]);
 				});
 				dynamize(recettesTable, 'edit_recette.php');
 
 				var recetteTable = $('#recette').dataTable();
 
-				$('#3_ingredient').autocomplete(keys(jsdb.ingredients), {
-					mustMatch: true
-				});
+				updateCompletions();
 
 				$('#1_form').submit(function() {
 					ingredientsTable.fnAddData([$('#1_ingredient').val(), $('#1_quantite').val(), $('#1_prix').val()]);
 					dynamize(ingredientsTable, 'edit_ingredient.php');
+					updateCompletions();
 					return false;
 				});
 
 				$('#2_form').submit(function() {
-					recettesTable.fnAddData([$('#2_recette').val(), 0, '<b>FIXME</b>']);
+					recettesTable.fnAddData([$('#2_recette').val(), 0, linkToIngredients($('#2_recette').val())]);
 					dynamize(recettesTable, 'edit_recette.php');
 					return false;
 				});
 
 				$('#3_form').submit(function() {
-					recetteTable.fnAddData([$('#3_ingredient').val(), $('#3_quantite').val(), 0, 'supprimer']);
+					recetteTable.fnAddData([$('#3_ingredient').val(), $('#3_quantite').val(), ingredientPrice($('#3_ingredient').val(), $('#3_quantite').val()), 'supprimer']);
 					return false;
 				});
+
+				$('#recipe_tab').hide();
 			});
 		</script>
 
