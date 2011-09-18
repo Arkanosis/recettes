@@ -19,8 +19,6 @@
 			// tab3: quantité
 			// ⇒ the others must *not* be editable
 
-			// TODO help text at the beginning of each tab
-
 			var jsdb = {
 				'ingredients': {
 					'Beurre': [250, 150],
@@ -182,6 +180,13 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 			</ul>
 
 			<div id="tabs-1" class="ui-widget">
+				<p style="font-size: 0.9em">
+					Remplissez ce tableau avec les différents ingrédients que vous utilisez dans vos recettes, leur quantité à l'achat et leur prix.<br/>
+					Indiquez la quantité et le prix dans les unités les plus petites utilisées (pour le prix, utilisez les centimes).
+					Par exemple, si vous achetez du lait à 1 € le litre, et que vous utilisez parfois les millilitres, saisissez « 100 » pour le prix (et non « 1 ») et « 1000 » pour la quantité (et non « 1 »).
+					Les prochaines versions de cet outil permettront l'utilisation de multiples.
+				</p>
+
 				<table cellpadding="0" cellspacing="0" border="0" class="display" id="ingredients">
 					<col/>
 					<col align="right"/>
@@ -219,6 +224,10 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 			</div>
 
 			<div id="tabs-2" class="ui-widget">
+				<p style="font-size: 0.9em">
+					Remplissez ce tableau avec les noms de vos recettes.
+				</p>
+
 				<table cellpadding="0" cellspacing="0" border="0" class="display" id="recettes">
 					<col/>
 					<col align="right"/>
@@ -251,6 +260,13 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 			</div>
 
 			<div id="tabs-3" class="ui-widget">
+				<p style="font-size: 0.9em">
+					Remplissez ce tableau avec les ingrédients nécessaires à votre recette et leurs quantités respectives.
+					Indiquez la quantité dans l'unité la plus petite utilisée.
+					Par exemple, si vous utilisez parfois les millilitres, saisissez « 1000 » pour un litre (et non « 1 »).
+					Les prochaines versions de cet outil permettront l'utilisation de multiples.
+				</p>
+
 				<table cellpadding="0" cellspacing="0" border="0" class="display" id="recette">
 					<col/>
 					<col align="right"/>
