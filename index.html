@@ -19,6 +19,8 @@
 			// tab3: quantité
 			// ⇒ the others must *not* be editable
 
+			// TODO help text at the beginning of each tab
+
 			var jsdb = {
 				'ingredients': {
 					'Beurre': [250, 150],
@@ -47,7 +49,7 @@
 			}
 
 			function dynamize(table, backend) {
-				return; // FIXME, re-activate when able to choose what is *not* editable
+				return; // TODO, re-activate when able to choose what is *not* editable
 
 				$('td', table.fnGetNodes()).editable(backend, {
 					'callback': function(sValue, y) {
@@ -79,11 +81,23 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 			}
 
 			function recipe(name) {
-				$('#recipe_tab').text(name).show().click();
-				$('#recipe_name').text(name);
-				$('#recipe_price').text(recipePrice(jsdb.recipes[name]));
+				if ($('#recipe_tab').text() != name) {
+					$('#recipe_tab').text(name).show().click();
+					$('#recipe_name').text(name);
+					$('#recipe_price').text(recipePrice(jsdb.recipes[name]));
 
-				// FIXME fill the third tab with the recipe, compute the price
+					var recipeTable = $('#recette').dataTable();
+
+					recipeTable.fnClearTable();
+					$.each(jsdb.recipes[name], function(index, ingredientAndQuantity) {
+						recipeTable.fnAddData([ingredientAndQuantity[0], ingredientAndQuantity[1], ingredientPrice(ingredientAndQuantity[0], ingredientAndQuantity[1]), linkForRemoval(ingredientAndQuantity[0])]);
+					});
+					dynamize(recipesTable, 'edit_ingredients_recette.php');
+				}
+			}
+
+			function remove(ingredient) {
+				// FIXME implement removal
 			}
 
 			function updateCompletions() {
@@ -94,6 +108,10 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 
 			function linkToIngredients(recipe) {
 				return '<a href="javascript:recipe(\'' + recipe + '\');">ingrédients</a>';
+			}
+
+			function linkForRemoval(ingredient) {
+				return '<a href="javascript:remove(\'' + ingredient + '\');">retirer</a>';
 			}
 
 			$(function() {
@@ -116,6 +134,7 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 				updateCompletions();
 
 				$('#1_form').submit(function() {
+					// TODO check input
 					jsdb.ingredients[$('#1_ingredient').val()] = [$('#1_quantite').val(), $('#1_prix').val()];
 					ingredientsTable.fnAddData([$('#1_ingredient').val(), $('#1_quantite').val(), $('#1_prix').val()]);
 					dynamize(ingredientsTable, 'edit_ingredient.php');
@@ -124,6 +143,7 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 				});
 
 				$('#2_form').submit(function() {
+					// TODO check input
 					jsdb.recipes[$('#2_recette').val()] = [];
 					recipesTable.fnAddData([$('#2_recette').val(), 0, linkToIngredients($('#2_recette').val())]);
 					dynamize(recipesTable, 'edit_recette.php');
@@ -131,8 +151,9 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 				});
 
 				$('#3_form').submit(function() {
+					// TODO check input
 					jsdb.recipes[$('#recipe_tab').text()].push([$('#3_ingredient').val(), $('#3_quantite').val()]);
-					recipeTable.fnAddData([$('#3_ingredient').val(), $('#3_quantite').val(), ingredientPrice($('#3_ingredient').val(), $('#3_quantite').val()), 'supprimer']);
+					recipeTable.fnAddData([$('#3_ingredient').val(), $('#3_quantite').val(), ingredientPrice($('#3_ingredient').val(), $('#3_quantite').val()), linkForRemoval($('#3_ingredient').val())]);
 					// FIXME update the recipe cost price in the recipes table
 					$('#recipe_price').text(recipePrice(jsdb.recipes[$('#recipe_tab').text()]));
 					return false;
@@ -156,14 +177,11 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 		<div id="tabs">
 			<ul id="toptabs">
 				<li><a href="#tabs-1">Ingrédients</a></li>
-				<!-- TODO reload from the db (in case the ingredients / prices have changed) -->
 				<li><a href="#tabs-2">Recettes</a></li>
-				<!-- TODO last edited recette, reload from the db (in case the ingredients / prices have changed) -->
 				<li><a href="#tabs-3" id="recipe_tab">Ingrédients de la recette</a></li>
 			</ul>
 
 			<div id="tabs-1" class="ui-widget">
-				<!-- TODO generate from the db -->
 				<table cellpadding="0" cellspacing="0" border="0" class="display" id="ingredients">
 					<col/>
 					<col align="right"/>
@@ -201,13 +219,11 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 			</div>
 
 			<div id="tabs-2" class="ui-widget">
-				<!-- TODO generate from the db -->
 				<table cellpadding="0" cellspacing="0" border="0" class="display" id="recettes">
 					<col/>
 					<col align="right"/>
 					<thead>
 						<tr>
-							<!-- TODO link, updates the third tab -->
 							<th>Recette</th>
 							<th>Prix</th>
 							<th>Ingrédients</th>
@@ -235,11 +251,9 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 			</div>
 
 			<div id="tabs-3" class="ui-widget">
-				<!-- TODO generate from the db -->
 				<table cellpadding="0" cellspacing="0" border="0" class="display" id="recette">
 					<col/>
 					<col align="right"/>
-					<!-- TODO last column is not editable, but updated according to the rest -->
 					<col align="right"/>
 					<col align="center"/>
 					<thead>
@@ -247,7 +261,7 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 							<th>Ingrédient</th>
 							<th>Quantité</th>
 							<th>Prix</th>
-							<th>Supprimer</th>
+							<th>Retirer</th>
 						</tr>
 					</thead>
 					<tfoot>
@@ -255,7 +269,7 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 							<th>Ingrédient</th>
 							<th>Quantité</th>
 							<th>Prix</th>
-							<th>Supprimer</th>
+							<th>Retirer</th>
 						</tr>
 					</tfoot>
 					<tbody>
