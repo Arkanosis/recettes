@@ -27,7 +27,7 @@
 					'Sel': [150, 25],
 					'Sucre': [500, 50]
 				},
-				'recettes': {
+				'recipes': {
 					'Pains au chocolat': [
 						['Beurre', 25],
 						['Farine', 75],
@@ -81,13 +81,13 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 			function recipe(name) {
 				$('#recipe_tab').text(name).show().click();
 				$('#recipe_name').text(name);
-				$('#recipe_price').text(recipePrice(jsdb.recettes[name]));
+				$('#recipe_price').text(recipePrice(jsdb.recipes[name]));
 
 				// FIXME fill the third tab with the recipe, compute the price
 			}
 
 			function updateCompletions() {
-				$('#3_ingredient').autocomplete(keys(jsdb.ingredients), {
+				$('#3_ingredient').unautocomplete().autocomplete(keys(jsdb.ingredients), {
 					mustMatch: true
 				});
 			}
@@ -105,17 +105,18 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 				});
 				dynamize(ingredientsTable, 'edit_ingredient.php');
 
-				var recettesTable = $('#recettes').dataTable();
-				$.each(jsdb.recettes, function(name, ingredients) {
-					recettesTable.fnAddData([name, recipePrice(ingredients), linkToIngredients(name)]);
+				var recipesTable = $('#recettes').dataTable();
+				$.each(jsdb.recipes, function(name, ingredients) {
+					recipesTable.fnAddData([name, recipePrice(ingredients), linkToIngredients(name)]);
 				});
-				dynamize(recettesTable, 'edit_recette.php');
+				dynamize(recipesTable, 'edit_recette.php');
 
-				var recetteTable = $('#recette').dataTable();
+				var recipeTable = $('#recette').dataTable();
 
 				updateCompletions();
 
 				$('#1_form').submit(function() {
+					jsdb.ingredients[$('#1_ingredient').val()] = [$('#1_quantite').val(), $('#1_prix').val()];
 					ingredientsTable.fnAddData([$('#1_ingredient').val(), $('#1_quantite').val(), $('#1_prix').val()]);
 					dynamize(ingredientsTable, 'edit_ingredient.php');
 					updateCompletions();
@@ -123,13 +124,17 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 				});
 
 				$('#2_form').submit(function() {
-					recettesTable.fnAddData([$('#2_recette').val(), 0, linkToIngredients($('#2_recette').val())]);
-					dynamize(recettesTable, 'edit_recette.php');
+					jsdb.recipes[$('#2_recette').val()] = [];
+					recipesTable.fnAddData([$('#2_recette').val(), 0, linkToIngredients($('#2_recette').val())]);
+					dynamize(recipesTable, 'edit_recette.php');
 					return false;
 				});
 
 				$('#3_form').submit(function() {
-					recetteTable.fnAddData([$('#3_ingredient').val(), $('#3_quantite').val(), ingredientPrice($('#3_ingredient').val(), $('#3_quantite').val()), 'supprimer']);
+					jsdb.recipes[$('#recipe_tab').text()].push([$('#3_ingredient').val(), $('#3_quantite').val()]);
+					recipeTable.fnAddData([$('#3_ingredient').val(), $('#3_quantite').val(), ingredientPrice($('#3_ingredient').val(), $('#3_quantite').val()), 'supprimer']);
+					// FIXME update the recipe cost price in the recipes table
+					$('#recipe_price').text(recipePrice(jsdb.recipes[$('#recipe_tab').text()]));
 					return false;
 				});
 
