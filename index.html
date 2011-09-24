@@ -9,11 +9,12 @@
 		<script type="text/javascript" src="js/jquery-1.6.2.min.js"></script>
 		<script type="text/javascript" src="js/jquery-ui-1.8.16.custom.min.js"></script>
 		<script type="text/javascript" src="js/jquery.autocomplete.min.js"></script>
-		<script type="text/javascript" src="js/jquery.jeditable.js"></script>
 		<script type="text/javascript" src="js/jquery.dataTables.js"></script>
+		<script type="text/javascript" src="js/jquery.jeditable.js"></script>
+		<script type="text/javascript" src="js/jquery.numeric.js"></script>
 
 		<script type="text/javascript">
-		  	// TODO make the right columns editable:
+			// TODO make the right columns editable:
 			// tab1: ingrédient, quantité, prix
 			// tab2: recette
 			// tab3: quantité
@@ -133,27 +134,36 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 
 				updateCompletions();
 
+				$('#1_quantity').numeric({
+					decimal: false,
+					negative: false
+				});
+				$('#1_price').numeric({
+					decimal: false,
+					negative: false
+				});
 				$('#1_form').submit(function() {
-					// TODO check input
-					jsdb.ingredients[$('#1_ingredient').val().toLowerCase()] = [$('#1_ingredient').val(), $('#1_quantite').val(), $('#1_prix').val()];
-					ingredientsTable.fnAddData([$('#1_ingredient').val(), $('#1_quantite').val(), $('#1_prix').val()]);
+					jsdb.ingredients[$('#1_ingredient').val().toLowerCase()] = [$('#1_ingredient').val(), $('#1_quantity').val(), $('#1_price').val()];
+					ingredientsTable.fnAddData([$('#1_ingredient').val(), $('#1_quantity').val(), $('#1_price').val()]);
 					dynamize(ingredientsTable, 'edit_ingredient.php');
 					updateCompletions();
 					return false;
 				});
 
 				$('#2_form').submit(function() {
-					// TODO check input
-					jsdb.recipes[$('#2_recette').val()] = [];
-					recipesTable.fnAddData([$('#2_recette').val(), 0, linkToIngredients($('#2_recette').val())]);
+					jsdb.recipes[$('#2_recipe').val()] = [];
+					recipesTable.fnAddData([$('#2_recipe').val(), 0, linkToIngredients($('#2_recipe').val())]);
 					dynamize(recipesTable, 'edit_recette.php');
 					return false;
 				});
 
+				$('#3_quantity').numeric({
+					decimal: false,
+					negative: false
+				});
 				$('#3_form').submit(function() {
-					// TODO check input
-					jsdb.recipes[$('#recipe_tab').text()].push([$('#3_ingredient').val().toLowerCase(), $('#3_quantite').val()]);
-					recipeTable.fnAddData([jsdb.ingredients[$('#3_ingredient').val().toLowerCase()][0], $('#3_quantite').val(), ingredientPrice($('#3_ingredient').val().toLowerCase(), $('#3_quantite').val()), linkForRemoval($('#3_ingredient').val().toLowerCase())]);
+					jsdb.recipes[$('#recipe_tab').text()].push([$('#3_ingredient').val().toLowerCase(), $('#3_quantity').val()]);
+					recipeTable.fnAddData([jsdb.ingredients[$('#3_ingredient').val().toLowerCase()][0], $('#3_quantity').val(), ingredientPrice($('#3_ingredient').val().toLowerCase(), $('#3_quantity').val()), linkForRemoval($('#3_ingredient').val().toLowerCase())]);
 					// FIXME update the recipe cost price in the recipes table
 					$('#recipe_price').text(recipePrice(jsdb.recipes[$('#recipe_tab').text()]));
 					return false;
@@ -217,11 +227,11 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 				<form id="1_form">
 					<label for="1_ingredient">Nom</label>
 					<input id="1_ingredient" type="text"/>
-					<label for="1_quantite">Quantité</label>
-					<input id="1_quantite" type="text"/>
-					<label for="1_prix">Prix</label>
-					<input id="1_prix" type="text"/>
-					<input id="1_ajouter" type="submit" value="Ajouter"/>
+					<label for="1_quantity">Quantité</label>
+					<input id="1_quantity" type="text"/>
+					<label for="1_price">Prix</label>
+					<input id="1_price" type="text"/>
+					<input id="1_add" type="submit" value="Ajouter"/>
 				</form>
 			</div>
 
@@ -255,9 +265,9 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 				<br />
 
 				<form id="2_form">
-					<label for="2_recette">Nom</label>
-					<input id="2_recette" type="text"/>
-					<input id="2_ajouter" type="submit" value="Ajouter"/>
+					<label for="2_recipe">Nom</label>
+					<input id="2_recipe" type="text"/>
+					<input id="2_add" type="submit" value="Ajouter"/>
 				</form>
 			</div>
 
@@ -301,9 +311,9 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 				<form id="3_form">
 					<label for="3_ingredient">Ingrédient</label>
 					<input id="3_ingredient" type="text"/>
-					<label for="3_quantite">Quantité</label>
-					<input id="3_quantite" type="text"/>
-					<input id="3_ajouter" type="submit" value="Ajouter"/>
+					<label for="3_quantity">Quantité</label>
+					<input id="3_quantity" type="text"/>
+					<input id="3_add" type="submit" value="Ajouter"/>
 				</form>
 			</div>
 		</div>
