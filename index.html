@@ -41,6 +41,8 @@
 				}
 			};
 
+			var tables = {};
+
 			function ingredientNames(dictionary) {
 				var result = [];
 				$.each(dictionary, function(key, value) {
@@ -58,7 +60,6 @@
 						table.fnUpdate(sValue, aPos[0], aPos[1]);
 					},
 					'submitdata': function (value, settings) {
-console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.fnGetPosition(this)[2] + ': ' + value + ' (' + settings + ')');
 						return {
 							'row_id': this.parentNode.getAttribute('id'),
 							'column': table.fnGetPosition(this)[2]
@@ -87,19 +88,30 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 					$('#recipe_name').text(name);
 					$('#recipe_price').text(recipePrice(jsdb.recipes[name]));
 
-					var recipeTable = $('#recette').dataTable();
-
-					recipeTable.fnClearTable();
+					tables.recipe.fnClearTable();
 					$.each(jsdb.recipes[name], function(index, ingredientAndQuantity) {
-						recipeTable.fnAddData([jsdb.ingredients[ingredientAndQuantity[0]][0], ingredientAndQuantity[1], ingredientPrice(ingredientAndQuantity[0], ingredientAndQuantity[1]), linkForRemoval(ingredientAndQuantity[0])]);
+						tables.recipe.fnAddData([jsdb.ingredients[ingredientAndQuantity[0]][0], ingredientAndQuantity[1], ingredientPrice(ingredientAndQuantity[0], ingredientAndQuantity[1]), linkForRemoval(ingredientAndQuantity[0])]);
 					});
-					dynamize(recipeTable, 'edit_ingredients_recette.php');
+					dynamize(tables.recipe, 'edit_ingredients_recette.php');
 				}
 				$('#recipe_tab').click();
 			}
 
 			function remove(ingredient) {
-				// FIXME implement removal
+				$.each(jsdb.recipes[$('#recipe_tab').text()], function(index, value) {
+					if (value[0] == ingredient) {
+						jsdb.recipes[$('#recipe_tab').text()].splice(index, 1);
+						return false;
+					}
+				});
+				tables.recipe.find('tr').each(function() {
+					var name = $(this).find('td:first');
+					if (name.length && $(name[0]).text().toLowerCase() == ingredient) {
+						tables.recipe.fnDeleteRow(this);
+						return false;
+					}
+				});
+				// FIXME update the recipe cost price in the recipes table
 			}
 
 			function updateCompletions() {
@@ -119,19 +131,19 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 			$(function() {
 				$('#tabs').tabs();
 
-				var ingredientsTable = $('#ingredients').dataTable();
+				tables.ingredients = $('#ingredients').dataTable();
 				$.each(jsdb.ingredients, function(name, properties) {
-					ingredientsTable.fnAddData([properties[0], properties[1], properties[2]]);
+					tables.ingredients.fnAddData([properties[0], properties[1], properties[2]]);
 				});
-				dynamize(ingredientsTable, 'edit_ingredient.php');
+				dynamize(tables.ingredients, 'edit_ingredient.php');
 
-				var recipesTable = $('#recettes').dataTable();
+				tables.recipes = $('#recettes').dataTable();
 				$.each(jsdb.recipes, function(name, ingredients) {
-					recipesTable.fnAddData([name, recipePrice(ingredients), linkToIngredients(name)]);
+					tables.recipes.fnAddData([name, recipePrice(ingredients), linkToIngredients(name)]);
 				});
-				dynamize(recipesTable, 'edit_recette.php');
+				dynamize(tables.recipes, 'edit_recette.php');
 
-				var recipeTable = $('#recette').dataTable();
+				tables.recipe = $('#recette').dataTable();
 
 				updateCompletions();
 
@@ -145,16 +157,16 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 				});
 				$('#1_form').submit(function() {
 					jsdb.ingredients[$('#1_ingredient').val().toLowerCase()] = [$('#1_ingredient').val(), $('#1_quantity').val(), $('#1_price').val()];
-					ingredientsTable.fnAddData([$('#1_ingredient').val(), $('#1_quantity').val(), $('#1_price').val()]);
-					dynamize(ingredientsTable, 'edit_ingredient.php');
+					tables.ingredients.fnAddData([$('#1_ingredient').val(), $('#1_quantity').val(), $('#1_price').val()]);
+					dynamize(tables.ingredients, 'edit_ingredient.php');
 					updateCompletions();
 					return false;
 				});
 
 				$('#2_form').submit(function() {
 					jsdb.recipes[$('#2_recipe').val()] = [];
-					recipesTable.fnAddData([$('#2_recipe').val(), 0, linkToIngredients($('#2_recipe').val())]);
-					dynamize(recipesTable, 'edit_recette.php');
+					tables.recipes.fnAddData([$('#2_recipe').val(), 0, linkToIngredients($('#2_recipe').val())]);
+					dynamize(tables.recipes, 'edit_recette.php');
 					return false;
 				});
 
@@ -164,7 +176,7 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 				});
 				$('#3_form').submit(function() {
 					jsdb.recipes[$('#recipe_tab').text()].push([$('#3_ingredient').val().toLowerCase(), $('#3_quantity').val()]);
-					recipeTable.fnAddData([jsdb.ingredients[$('#3_ingredient').val().toLowerCase()][0], $('#3_quantity').val(), ingredientPrice($('#3_ingredient').val().toLowerCase(), $('#3_quantity').val()), linkForRemoval($('#3_ingredient').val().toLowerCase())]);
+					tables.recipe.fnAddData([jsdb.ingredients[$('#3_ingredient').val().toLowerCase()][0], $('#3_quantity').val(), ingredientPrice($('#3_ingredient').val().toLowerCase(), $('#3_quantity').val()), linkForRemoval($('#3_ingredient').val().toLowerCase())]);
 					// FIXME update the recipe cost price in the recipes table
 					$('#recipe_price').text(recipePrice(jsdb.recipes[$('#recipe_tab').text()]));
 					return false;
