@@ -19,24 +19,23 @@
 			// tab3: quantité
 			// ⇒ the others must *not* be editable
 
-			// TODO handle names non case-sensitively
 			// TODO give the opportunity to the user to precise the number of items and give the price per item
 
 			var jsdb = {
 				'ingredients': {
-					'Beurre': [250, 150],
-					'Farine': [1000, 50],
-					'Levure': [250, 50],
-					'Sel': [150, 25],
-					'Sucre': [500, 50]
+					'beurre': [250, 150],
+					'farine': [1000, 50],
+					'levure': [250, 50],
+					'sel': [150, 25],
+					'sucre': [500, 50]
 				},
 				'recipes': {
 					'Pains au chocolat': [
-						['Beurre', 25],
-						['Farine', 75],
+						['beurre', 25],
+						['farine', 75],
 					],
 					'Macarons': [
-						['Beurre', 75],
+						['beurre', 75],
 					]
 				}
 			};
@@ -93,7 +92,7 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 					$.each(jsdb.recipes[name], function(index, ingredientAndQuantity) {
 						recipeTable.fnAddData([ingredientAndQuantity[0], ingredientAndQuantity[1], ingredientPrice(ingredientAndQuantity[0], ingredientAndQuantity[1]), linkForRemoval(ingredientAndQuantity[0])]);
 					});
-					dynamize(recipesTable, 'edit_ingredients_recette.php');
+					dynamize(recipeTable, 'edit_ingredients_recette.php');
 				}
 			}
 
@@ -136,8 +135,8 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 
 				$('#1_form').submit(function() {
 					// TODO check input
-					jsdb.ingredients[$('#1_ingredient').val()] = [$('#1_quantite').val(), $('#1_prix').val()];
-					ingredientsTable.fnAddData([$('#1_ingredient').val(), $('#1_quantite').val(), $('#1_prix').val()]);
+					jsdb.ingredients[$('#1_ingredient').val().toLowerCase()] = [$('#1_quantite').val(), $('#1_prix').val()];
+					ingredientsTable.fnAddData([$('#1_ingredient').val().toLowerCase(), $('#1_quantite').val(), $('#1_prix').val()]);
 					dynamize(ingredientsTable, 'edit_ingredient.php');
 					updateCompletions();
 					return false;
@@ -153,8 +152,8 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 
 				$('#3_form').submit(function() {
 					// TODO check input
-					jsdb.recipes[$('#recipe_tab').text()].push([$('#3_ingredient').val(), $('#3_quantite').val()]);
-					recipeTable.fnAddData([$('#3_ingredient').val(), $('#3_quantite').val(), ingredientPrice($('#3_ingredient').val(), $('#3_quantite').val()), linkForRemoval($('#3_ingredient').val())]);
+					jsdb.recipes[$('#recipe_tab').text()].push([$('#3_ingredient').val().toLowerCase(), $('#3_quantite').val()]);
+					recipeTable.fnAddData([$('#3_ingredient').val().toLowerCase(), $('#3_quantite').val(), ingredientPrice($('#3_ingredient').val().toLowerCase(), $('#3_quantite').val()), linkForRemoval($('#3_ingredient').val().toLowerCase())]);
 					// FIXME update the recipe cost price in the recipes table
 					$('#recipe_price').text(recipePrice(jsdb.recipes[$('#recipe_tab').text()]));
 					return false;
