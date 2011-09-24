@@ -23,11 +23,11 @@
 
 			var jsdb = {
 				'ingredients': {
-					'beurre': [250, 150],
-					'farine': [1000, 50],
-					'levure': [250, 50],
-					'sel': [150, 25],
-					'sucre': [500, 50]
+					'beurre': ['Beurre', 250, 150],
+					'farine': ['Farine', 1000, 50],
+					'levure': ['Levure', 250, 50],
+					'sel': ['Sel', 150, 25],
+					'sucre': ['Sucre', 500, 50]
 				},
 				'recipes': {
 					'Pains au chocolat': [
@@ -40,10 +40,10 @@
 				}
 			};
 
-			function keys(dictionary) {
+			function ingredientNames(dictionary) {
 				var result = [];
 				$.each(dictionary, function(key, value) {
-					result.push(key);
+					result.push(value[0]);
 				});
 				return result;
 			}
@@ -69,7 +69,7 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 
 			function ingredientPrice(ingredient, quantity) {
 				var ingredientInfo = jsdb.ingredients[ingredient];
-				return ingredientInfo[1] * quantity / ingredientInfo[0];
+				return ingredientInfo[2] * quantity / ingredientInfo[1];
 			}
 
 			function recipePrice(ingredients) {
@@ -90,7 +90,7 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 
 					recipeTable.fnClearTable();
 					$.each(jsdb.recipes[name], function(index, ingredientAndQuantity) {
-						recipeTable.fnAddData([ingredientAndQuantity[0], ingredientAndQuantity[1], ingredientPrice(ingredientAndQuantity[0], ingredientAndQuantity[1]), linkForRemoval(ingredientAndQuantity[0])]);
+						recipeTable.fnAddData([jsdb.ingredients[ingredientAndQuantity[0]][0], ingredientAndQuantity[1], ingredientPrice(ingredientAndQuantity[0], ingredientAndQuantity[1]), linkForRemoval(ingredientAndQuantity[0])]);
 					});
 					dynamize(recipeTable, 'edit_ingredients_recette.php');
 				}
@@ -101,7 +101,7 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 			}
 
 			function updateCompletions() {
-				$('#3_ingredient').unautocomplete().autocomplete(keys(jsdb.ingredients), {
+				$('#3_ingredient').unautocomplete().autocomplete(ingredientNames(jsdb.ingredients), {
 					mustMatch: true
 				});
 			}
@@ -119,7 +119,7 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 
 				var ingredientsTable = $('#ingredients').dataTable();
 				$.each(jsdb.ingredients, function(name, properties) {
-					ingredientsTable.fnAddData([name, properties[0], properties[1]]);
+					ingredientsTable.fnAddData([properties[0], properties[1], properties[2]]);
 				});
 				dynamize(ingredientsTable, 'edit_ingredient.php');
 
@@ -135,8 +135,8 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 
 				$('#1_form').submit(function() {
 					// TODO check input
-					jsdb.ingredients[$('#1_ingredient').val().toLowerCase()] = [$('#1_quantite').val(), $('#1_prix').val()];
-					ingredientsTable.fnAddData([$('#1_ingredient').val().toLowerCase(), $('#1_quantite').val(), $('#1_prix').val()]);
+					jsdb.ingredients[$('#1_ingredient').val().toLowerCase()] = [$('#1_ingredient').val(), $('#1_quantite').val(), $('#1_prix').val()];
+					ingredientsTable.fnAddData([$('#1_ingredient').val(), $('#1_quantite').val(), $('#1_prix').val()]);
 					dynamize(ingredientsTable, 'edit_ingredient.php');
 					updateCompletions();
 					return false;
@@ -153,7 +153,7 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 				$('#3_form').submit(function() {
 					// TODO check input
 					jsdb.recipes[$('#recipe_tab').text()].push([$('#3_ingredient').val().toLowerCase(), $('#3_quantite').val()]);
-					recipeTable.fnAddData([$('#3_ingredient').val().toLowerCase(), $('#3_quantite').val(), ingredientPrice($('#3_ingredient').val().toLowerCase(), $('#3_quantite').val()), linkForRemoval($('#3_ingredient').val().toLowerCase())]);
+					recipeTable.fnAddData([jsdb.ingredients[$('#3_ingredient').val().toLowerCase()][0], $('#3_quantite').val(), ingredientPrice($('#3_ingredient').val().toLowerCase(), $('#3_quantite').val()), linkForRemoval($('#3_ingredient').val().toLowerCase())]);
 					// FIXME update the recipe cost price in the recipes table
 					$('#recipe_price').text(recipePrice(jsdb.recipes[$('#recipe_tab').text()]));
 					return false;
