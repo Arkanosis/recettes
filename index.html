@@ -83,7 +83,7 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 
 			function recipe(name) {
 				if ($('#recipe_tab').text() != name) {
-					$('#recipe_tab').text(name).show().click();
+					$('#recipe_tab').text(name).show();
 					$('#recipe_name').text(name);
 					$('#recipe_price').text(recipePrice(jsdb.recipes[name]));
 
@@ -95,6 +95,7 @@ console.log('Updating at ' + this.parentNode.getAttribute('id') + ', ' + table.f
 					});
 					dynamize(recipeTable, 'edit_ingredients_recette.php');
 				}
+				$('#recipe_tab').click();
 			}
 
 			function remove(ingredient) {
