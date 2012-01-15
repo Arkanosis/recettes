@@ -20,7 +20,7 @@ cursor.execute('''
 	);
 ''')
 cursor.execute('''
-	CREATE TABLE recipe_ingredient (
+	CREATE TABLE recipe_ingredients (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		recipe VARCHAR(50),
 		ingredient VARCHAR(50),
@@ -54,17 +54,17 @@ cursor.execute('''
 ''')
 
 cursor.execute('''
-	INSERT INTO recipe_ingredient (recipe, ingredient, quantity)
+	INSERT INTO recipe_ingredients (recipe, ingredient, quantity)
 	VALUES ('Pains aux chocolat', 'Beurre', 25)
 ''')
 
 cursor.execute('''
-	INSERT INTO recipe_ingredient (recipe, ingredient, quantity)
+	INSERT INTO recipe_ingredients (recipe, ingredient, quantity)
 	VALUES ('Pains aux chocolat', 'Farine', 75)
 ''')
 
 cursor.execute('''
-	INSERT INTO recipe_ingredient (recipe, ingredient, quantity)
+	INSERT INTO recipe_ingredients (recipe, ingredient, quantity)
 	VALUES ('Macarons', 'Beurre', 75)
 ''')
 

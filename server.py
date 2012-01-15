@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import BaseHTTPServer
+import cgi
 import json
 import os.path
 import sqlite3
@@ -22,15 +23,8 @@ def jsdb():
 		if key not in ingredients:
 			ingredients[key] = ingredient
 
-	ingredients = {}
-	cursor.execute('SELECT name, quantity, price FROM ingredients ORDER BY id DESC')
-	for ingredient in cursor:
-		key = ingredient[0].lower()
-		if key not in ingredients:
-			ingredients[key] = ingredient
-
 	recipes = {}
-	cursor.execute('SELECT recipe, ingredient, quantity FROM recipe_ingredient ORDER BY id DESC')
+	cursor.execute('SELECT recipe, ingredient, quantity FROM recipe_ingredients ORDER BY id DESC')
 	for ingredient in cursor:
 		if ingredient[0] not in recipes:
 			recipes[ingredient[0]] = (set(), [])
@@ -38,7 +32,8 @@ def jsdb():
 		recipe = recipes[ingredient[0]]
 		if key not in recipe[0]:
 			recipe[0].add(ingredient[1])
-			recipe[1].append((ingredient[1].lower(), ingredient[2]))
+			if ingredient[2]:
+				recipe[1].append((ingredient[1].lower(), ingredient[2]))
 	for name, recipe in recipes.items():
 		recipes[name] = recipe[1]
 
@@ -52,14 +47,14 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 	def do_GET(self):
 		if self.path == '/jsdb':
 			self.send_response(200)
-			self.send_header('Content-type', 'application/json')
+			self.send_header('Content-Type', 'application/json')
 			self.end_headers()
 			self.wfile.write(jsdb())
 		else:
 			try:
 				with open(os.path.dirname(os.path.abspath(sys.argv[0])) + self.path) as fileToServe:
 					self.send_response(200)
-					self.send_header('Content-type', 'text/html')
+					self.send_header('Content-Type', 'text/html')
 					self.end_headers()
 					if self.path == '/index.html':
 						self.wfile.write(fileToServe.read().replace('var jsdb = {};', 'var jsdb = ' + jsdb() + ';'))
@@ -70,9 +65,51 @@ class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 	def do_POST(self):
-		try:
-			self.send_error(404, 'File Not Found: %s (no POST action defined)' % self.path)
-		except IOError:
+		data = cgi.FieldStorage(
+			fp=self.rfile,
+			headers=self.headers,
+			environ={
+				'REQUEST_METHOD': 'POST',
+				'CONTENT_TYPE': self.headers['Content-Type'],
+			}
+		)
+		if self.path == '/addingredient':
+			try:
+				cursor.execute('''
+					INSERT INTO ingredients (name, quantity, price)
+					VALUES ('%s', %s, %s)
+''' % (data['name'].value, data['quantity'].value, data['price'].value))
+				connection.commit()
+				self.send_response(200)
+				self.end_headers()
+			except:
+				self.send_error(404, 'File Not Found: %s (unable to add ingredient)' % self.path)
+				raise
+		elif self.path == '/addrecipe':
+			try:
+				cursor.execute('''
+					INSERT INTO recipe_ingredients (recipe, ingredient, quantity)
+					VALUES ('%s', '%s', %s)
+''' % (data['name'].value, '__FAKE__', 0))
+				connection.commit()
+				self.send_response(200)
+				self.end_headers()
+			except:
+				self.send_error(404, 'File Not Found: %s (unable to add recipe)' % self.path)
+				raise
+		elif self.path == '/addrecipeingredient':
+			try:
+				cursor.execute('''
+					INSERT INTO recipe_ingredients (recipe, ingredient, quantity)
+					VALUES ('%s', '%s', %s)
+''' % (data['recipe'].value, data['ingredient'].value, data['quantity'].value))
+				connection.commit()
+				self.send_response(200)
+				self.end_headers()
+			except:
+				self.send_error(404, 'File Not Found: %s (unable to add ingredient to recipe)' % self.path)
+				raise
+		else:
 			self.send_error(404, 'File Not Found: %s' % self.path)
 
 if __name__ == '__main__':

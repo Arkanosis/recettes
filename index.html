@@ -81,6 +81,13 @@
 			}
 
 			function remove(ingredient) {
+				$.post('/addrecipeingredient', {
+					'recipe': $('#recipe_tab').text(),
+					'ingredient': ingredient,
+					'quantity': 0
+				}).error(function() {
+					alert('Impossible d\'enregistrer la recette');
+				});
 				$.each(jsdb.recipes[$('#recipe_tab').text()], function(index, value) {
 					if (value[0] == ingredient) {
 						jsdb.recipes[$('#recipe_tab').text()].splice(index, 1);
@@ -140,6 +147,14 @@
 					negative: false
 				});
 				$('#1_form').submit(function() {
+					$.post('/addingredient', {
+						'name': $('#1_ingredient').val(),
+						'quantity': $('#1_quantity').val(),
+						'price': $('#1_price').val()
+					}).error(function() {
+						alert('Impossible d\'enregistrer l\'ingrédient');
+					});
+
 					jsdb.ingredients[$('#1_ingredient').val().toLowerCase()] = [$('#1_ingredient').val(), $('#1_quantity').val(), $('#1_price').val()];
 					tables.ingredients.fnAddData([$('#1_ingredient').val(), $('#1_quantity').val(), $('#1_price').val()]);
 					dynamize(tables.ingredients, 'edit_ingredient.php');
@@ -148,6 +163,11 @@
 				});
 
 				$('#2_form').submit(function() {
+					$.post('/addrecipe', {
+						'name': $('#2_recipe').val()
+					}).error(function() {
+						alert('Impossible d\'enregistrer la recette');
+					});
 					jsdb.recipes[$('#2_recipe').val()] = [];
 					tables.recipes.fnAddData([$('#2_recipe').val(), 0, linkToIngredients($('#2_recipe').val())]);
 					dynamize(tables.recipes, 'edit_recette.php');
@@ -159,6 +179,13 @@
 					negative: false
 				});
 				$('#3_form').submit(function() {
+					$.post('/addrecipeingredient', {
+						'recipe': $('#recipe_tab').text(),
+						'ingredient': $('#3_ingredient').val(),
+						'quantity': $('#3_quantity').val()
+					}).error(function() {
+						alert('Impossible d\'enregistrer la recette');
+					});
 					jsdb.recipes[$('#recipe_tab').text()].push([$('#3_ingredient').val().toLowerCase(), $('#3_quantity').val()]);
 					tables.recipe.fnAddData([jsdb.ingredients[$('#3_ingredient').val().toLowerCase()][0], $('#3_quantity').val(), ingredientPrice($('#3_ingredient').val().toLowerCase(), $('#3_quantity').val()), linkForRemoval($('#3_ingredient').val().toLowerCase())]);
 					// FIXME update the recipe cost price in the recipes table
