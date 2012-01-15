@@ -45,6 +45,9 @@ def jsdb():
 class HTTPHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 	def do_GET(self):
+		if self.path == '/':
+			self.path = '/index.html'
+
 		if self.path == '/jsdb':
 			self.send_response(200)
 			self.send_header('Content-Type', 'application/json')
